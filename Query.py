@@ -119,7 +119,7 @@ def run_query(intent: str, food: str, allergens: list, input_type="image"):
 
     - 기본 intent(check_allergy, check_edibility, check_ingredients)는 공통으로 동작한다.
     - 토핑 관련 intent(check_topping_*)는 텍스트 입력일 때만 허용한다.
-    - 텍스트에서 재료 조회(check_ingredients)할 때는 토핑 목록도 함께 반환한다.
+    - 텍스트에서 재료 조회(check_ingredients) 시 토핑 목록도 함께 반환한다.
     """
 
     # -----------------------------
@@ -147,7 +147,7 @@ def run_query(intent: str, food: str, allergens: list, input_type="image"):
     if intent == "check_ingredients":
         ingredients = query_food_ingredients(food)
 
-        # 텍스트 입력이면 toppings도 추가 반환
+        # 텍스트 입력이면 toppings도 함께 반환
         if input_type == "text":
             return {
                 "ingredients": ingredients,
