@@ -1,4 +1,4 @@
-# Query_module.py
+# Query.py
 
 from neo4j import GraphDatabase
 from config import NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, NEO4J_DATABASE
@@ -111,9 +111,33 @@ def query_topping_edibility(food_name: str, user_allergens: list):
 
 
 # =============================
-# 7) intent 라우팅
+# 7) intent 라우팅 (패치 적용됨!)
 # =============================
 def run_query(intent: str, food: str, allergens: list, input_type="image"):
+    """
+    사용자 의도와 입력 유형에 따라 적절한 쿼리를 실행한다.
+
+    - 기본 intent(check_allergy, check_edibility, check_ingredients)는 공통으로 동작한다.
+    - 토핑 관련 intent(check_topping_*)는 텍스트 입력일 때만 허용한다.
+    - 텍스트에서 재료 조회(check_ingredients)할 때는 토핑 목록도 함께 반환한다.
+    """
+
+    # -----------------------------
+    # 텍스트-only일 때만 토핑 intent 허용
+    # -----------------------------
+    if input_type == "text":
+        if intent == "check_topping_allergy":
+            return query_topping_allergens(food)
+
+        if intent == "check_topping_ingredient":
+            return query_topping_ingredients(food)
+
+        if intent == "check_topping_edibility":
+            return query_topping_edibility(food, allergens)
+
+    # -----------------------------
+    # 공통 intent 처리
+    # -----------------------------
     if intent == "check_allergy":
         return query_food_allergens(food)
 
@@ -121,15 +145,15 @@ def run_query(intent: str, food: str, allergens: list, input_type="image"):
         return query_edibility(food, allergens)
 
     if intent == "check_ingredients":
-        return query_food_ingredients(food)
+        ingredients = query_food_ingredients(food)
 
-    # 텍스트 입력에서만 토핑 기능 허용
-    if input_type == "text":
-        if intent == "check_allergy":
-            return query_topping_allergens(food)
-        if intent == "check_ingredient":
-            return query_topping_ingredients(food)
-        if intent == "check_edibility":
-            return query_topping_edibility(food, allergens)
+        # 텍스트 입력이면 toppings도 추가 반환
+        if input_type == "text":
+            return {
+                "ingredients": ingredients,
+                "toppings": query_topping_ingredients(food)
+            }
+
+        return ingredients
 
     return None
